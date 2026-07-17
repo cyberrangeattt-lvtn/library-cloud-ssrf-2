@@ -1,0 +1,58 @@
+name: library-cloud-ssrf-2
+
+hosts:
+  - name: attacker
+    base_box:
+      image: kali
+      mgmt_user: debian
+    flavor: standard.kali
+
+  - name: webapp-vm
+    base_box:
+      image: debian-12-x86_64
+      mgmt_user: debian
+    flavor: standard.small
+
+  - name: docker-host
+    base_box:
+      image: debian-12-x86_64
+      mgmt_user: debian
+    flavor: standard.small
+
+  - name: minio-storage
+    base_box:
+      image: debian-12-x86_64
+      mgmt_user: debian
+    flavor: standard.small
+
+routers:
+  - name: router
+    base_box:
+      image: debian-12-x86_64
+      mgmt_user: debian
+    flavor: standard.small
+
+networks:
+  - name: cloud-lab-switch
+    cidr: 172.20.1.0/24
+
+net_mappings:
+  - host: attacker
+    network: cloud-lab-switch
+    ip: 172.20.1.5
+  - host: webapp-vm
+    network: cloud-lab-switch
+    ip: 172.20.1.10
+  - host: docker-host
+    network: cloud-lab-switch
+    ip: 172.20.1.20
+  - host: minio-storage
+    network: cloud-lab-switch
+    ip: 172.20.1.30
+
+router_mappings:
+  - router: router
+    network: cloud-lab-switch
+    ip: 172.20.1.1
+
+groups: []

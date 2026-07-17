@@ -1,0 +1,4 @@
+FROM python:3.11-slim
+RUN pip install --no-cache-dir Flask==3.0.3
+COPY mock_imds.py /app/mock_imds.py
+CMD ["python","/app/mock_imds.py"]

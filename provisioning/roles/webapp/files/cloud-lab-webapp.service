@@ -1,0 +1,11 @@
+[Unit]
+Description=Cloud SSRF lab containers
+After=docker.service network-online.target
+Requires=docker.service
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/usr/local/sbin/start-cloud-webapp.sh
+ExecStop=/usr/bin/docker rm -f image-resizer mock-imds
+[Install]
+WantedBy=multi-user.target

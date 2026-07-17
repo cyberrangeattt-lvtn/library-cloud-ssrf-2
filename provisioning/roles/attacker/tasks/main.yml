@@ -1,0 +1,25 @@
+---
+- name: Install offensive and cloud client tools
+  apt:
+    name: [burpsuite, curl, jq, awscli, openssh-client, tar, unzip]
+    state: present
+    update_cache: true
+  environment:
+    DEBIAN_FRONTEND: noninteractive
+    
+- name: Add lab host aliases
+  blockinfile:
+    path: /etc/hosts
+    marker: "# {mark} CLOUD SSRF LAB"
+    block: |
+      172.20.1.10 image-resizer webapp-vm
+      172.20.1.20 docker-host
+      172.20.1.30 minio-storage
+      
+- name: Create trainee work directory
+  file:
+    path: /home/user/cloud-lab
+    state: directory
+    owner: user
+    group: user
+    mode: '0755'

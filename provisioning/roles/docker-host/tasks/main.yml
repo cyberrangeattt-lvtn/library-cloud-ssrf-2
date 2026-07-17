@@ -1,0 +1,74 @@
+---
+- name: Install runtime dependencies
+  apt:
+    name: [ca-certificates, curl, iptables, tar, xz-utils]
+    state: present
+    update_cache: true
+    
+- name: Download Docker 24.0.5 static binaries
+  get_url:
+    url: https://download.docker.com/linux/static/stable/x86_64/docker-24.0.5.tgz
+    dest: /tmp/docker-24.0.5.tgz
+    mode: '0644'
+    
+- name: Extract Docker binaries
+  unarchive:
+    src: /tmp/docker-24.0.5.tgz
+    dest: /tmp
+    remote_src: true
+    
+- name: Install Docker binaries
+  copy:
+    src: "/tmp/docker/{{ item }}"
+    dest: "/usr/local/bin/{{ item }}"
+    remote_src: true
+    mode: '0755'
+  loop: [containerd, containerd-shim-runc-v2, ctr, docker, dockerd, docker-init, docker-proxy, runc]
+  
+- name: Install Docker service
+  copy:
+    src: docker.service
+    dest: /etc/systemd/system/docker.service
+    
+- name: Start Docker
+  systemd:
+    name: docker
+    daemon_reload: true
+    enabled: true
+    state: restarted
+    
+- name: Create host flag
+  copy:
+    dest: /root/flag.txt
+    content: "FLAG{c0nt41n3r_3sc4p3_v14_s0ck3t}\n"
+    mode: '0600'
+    
+- name: Create build directory
+  file:
+    path: /opt/portainer-lite
+    state: directory
+    
+- name: Copy build files
+  copy:
+    src: "{{ item }}"
+    dest: "/opt/portainer-lite/{{ item }}"
+  loop: [Dockerfile.portainer-lite, portainer_lite_key.pub]
+  
+- name: Build portainer-lite
+  command: docker build -t cloud-lab/portainer-lite:1.0 -f Dockerfile.portainer-lite .
+  args: {chdir: /opt/portainer-lite}
+  
+- name: Pull Alpine image
+  command: docker pull alpine:3.19
+  
+- name: Remove old container
+  command: docker rm -f portainer-lite
+  failed_when: false
+  changed_when: false
+  
+- name: Start portainer-lite
+  command: >-
+    docker run -d --name portainer-lite --restart unless-stopped -p 2222:22
+    -v /var/run/docker.sock:/var/run/docker.sock
+    -v /usr/local/bin/docker:/usr/local/bin/docker:ro
+    cloud-lab/portainer-lite:1.0
