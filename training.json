@@ -194,7 +194,7 @@
       ],
       "incorrect_answer_limit": 10,
       "attachments": [],
-      "max_score": 150,
+      "max_score": 100,
       "variant_answers": false,
       "reference_solution": [],
       "mitre_techniques": [
@@ -233,7 +233,7 @@
       ],
       "incorrect_answer_limit": 10,
       "attachments": [],
-      "max_score": 200,
+      "max_score": 100,
       "variant_answers": false,
       "reference_solution": [],
       "mitre_techniques": [
