@@ -49,13 +49,13 @@
         {
           "title": "Quan sát Response Header",
           "content": "Sử dụng `curl -i` hoặc Burp Suite.",
-          "hint_penalty": 20,
+          "hint_penalty": 6,
           "order": 0
         }
       ],
       "incorrect_answer_limit": 10,
       "attachments": [],
-      "max_score": 100,
+      "max_score": 15,
       "variant_answers": false,
       "reference_solution": [],
       "mitre_techniques": [
@@ -83,13 +83,13 @@
         {
           "title": "Weak filter",
           "content": "Only the literal hostname is blocked.",
-          "hint_penalty": 20,
+          "hint_penalty": 8,
           "order": 0
         }
       ],
       "incorrect_answer_limit": 10,
       "attachments": [],
-      "max_score": 100,
+      "max_score": 15,
       "variant_answers": false,
       "reference_solution": [],
       "mitre_techniques": [
@@ -117,13 +117,13 @@
         {
           "title": "Role first",
           "content": "Enumerate the role before requesting credentials.",
-          "hint_penalty": 20,
+          "hint_penalty": 10,
           "order": 0
         }
       ],
       "incorrect_answer_limit": 10,
       "attachments": [],
-      "max_score": 100,
+      "max_score": 15,
       "variant_answers": false,
       "reference_solution": [],
       "mitre_techniques": [
@@ -152,13 +152,13 @@
         {
           "title": "Custom endpoint",
           "content": "Use `--endpoint-url`.",
-          "hint_penalty": 20,
+          "hint_penalty": 7,
           "order": 0
         }
       ],
       "incorrect_answer_limit": 10,
       "attachments": [],
-      "max_score": 100,
+      "max_score": 15,
       "variant_answers": false,
       "reference_solution": [],
       "mitre_techniques": [
@@ -188,13 +188,13 @@
         {
           "title": "Read notes",
           "content": "The archive contains target, port, user, and key.",
-          "hint_penalty": 20,
+          "hint_penalty": 12,
           "order": 0
         }
       ],
       "incorrect_answer_limit": 10,
       "attachments": [],
-      "max_score": 100,
+      "max_score": 20,
       "variant_answers": false,
       "reference_solution": [],
       "mitre_techniques": [
@@ -227,13 +227,13 @@
         {
           "title": "Mount host root",
           "content": "Bind mount `/` at `/host`.",
-          "hint_penalty": 30,
+          "hint_penalty": 6,
           "order": 0
         }
       ],
       "incorrect_answer_limit": 10,
       "attachments": [],
-      "max_score": 100,
+      "max_score": 20,
       "variant_answers": false,
       "reference_solution": [],
       "mitre_techniques": [
