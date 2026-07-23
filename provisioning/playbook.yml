@@ -1,0 +1,61 @@
+---
+- name: Disable QXL on Debian-family nodes
+  hosts:
+    - routers
+    - hosts
+  gather_facts: true
+  become: true
+  tasks:
+    - include_role:
+        name: disable-qxl
+      when: ansible_os_family == 'Debian'
+
+- name: Basic host configuration
+  hosts: hosts
+  become: true
+  roles:
+    - role: hosts
+
+- name: Configure trainee workstation
+  hosts: attacker
+  become: true
+  roles:
+    - role: user-access
+      user_access_username: user
+      user_access_password: Password123
+      user_access_sudo: true
+    - role: attacker
+    - role: chrony
+
+- name: Configure vulnerable ImageResizer and mock IMDS
+  hosts: webapp-vm
+  become: true
+  roles:
+    - role: webapp
+
+- name: Configure Docker host and portainer-lite container
+  hosts: docker-host
+  become: true
+  roles:
+    - role: docker-host
+
+- name: Configure MinIO object storage
+  hosts: minio-storage
+  become: true
+  roles:
+    - role: minio-storage
+
+- name: Configure command logging
+  hosts: hosts
+  become: true
+  vars:
+    student_id: 0
+    sandbox_name: cloud-ssrf-container-escape
+    central_syslog_ip: 78.128.251.179
+  roles:
+    - role: sandbox-logging
+      slf_destination_port: '{% if hostvars["man"] is defined -%} 514 {%- else -%} 515 {%- endif %}'
+      slf_destination: '{% if hostvars["man"] is defined -%} {{ hostvars["man"].ansible_host }} {%- else -%} {{ central_syslog_ip }} {%- endif %}'
+      slf_sandbox_id: "{{ global_sandbox_id | default(student_id) | default(0) }}"
+      slf_sandbox_name: "{{ global_sandbox_name | default(sandbox_name) }}"
+      slf_pool_id: "{{ global_pool_id | default(None) }}"

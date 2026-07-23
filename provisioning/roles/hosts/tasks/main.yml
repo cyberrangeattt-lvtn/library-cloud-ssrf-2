@@ -1,0 +1,8 @@
+---
+- name: Install common utilities
+  apt:
+    name: [ca-certificates, curl, jq, net-tools, unzip]
+    state: present
+    update_cache: true
+  environment:
+    DEBIAN_FRONTEND: noninteractive

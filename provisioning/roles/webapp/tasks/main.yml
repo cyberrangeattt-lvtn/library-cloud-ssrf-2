@@ -1,0 +1,49 @@
+---
+- name: Install Docker and networking tools
+  apt:
+    name: [docker.io, iproute2]
+    state: present
+    update_cache: true
+    
+- name: Enable Docker
+  systemd:
+    name: docker
+    enabled: true
+    state: started
+    
+- name: Create build directory
+  file:
+    path: /opt/cloud-lab-webapp
+    state: directory
+    
+- name: Copy application files
+  copy:
+    src: "{{ item }}"
+    dest: "/opt/cloud-lab-webapp/{{ item }}"
+  loop: [image_resizer.py, mock_imds.py, Dockerfile.imageresizer, Dockerfile.imds]
+  
+- name: Build ImageResizer image
+  command: docker build -t cloud-lab/image-resizer:1.0 -f Dockerfile.imageresizer .
+  args: {chdir: /opt/cloud-lab-webapp}
+  
+- name: Build mock IMDS image
+  command: docker build -t cloud-lab/mock-imds:1.0 -f Dockerfile.imds .
+  args: {chdir: /opt/cloud-lab-webapp}
+  
+- name: Install startup script
+  copy:
+    src: start-cloud-webapp.sh
+    dest: /usr/local/sbin/start-cloud-webapp.sh
+    mode: '0755'
+    
+- name: Install systemd unit
+  copy:
+    src: cloud-lab-webapp.service
+    dest: /etc/systemd/system/cloud-lab-webapp.service
+    
+- name: Start web services
+  systemd:
+    name: cloud-lab-webapp.service
+    daemon_reload: true
+    enabled: true
+    state: restarted

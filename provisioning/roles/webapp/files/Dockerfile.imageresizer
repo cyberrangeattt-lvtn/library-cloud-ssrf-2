@@ -1,0 +1,4 @@
+FROM python:3.11-slim
+RUN pip install --no-cache-dir Flask==3.0.3 requests==2.32.3
+COPY image_resizer.py /app/image_resizer.py
+CMD ["python","/app/image_resizer.py"]

@@ -1,0 +1,6 @@
+Portainer maintenance notes
+Target: docker-host (172.20.1.20)
+SSH port: 2222
+Username: user
+Private key: portainer_lite_key
+The container has access to /var/run/docker.sock.

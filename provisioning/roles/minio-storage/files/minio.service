@@ -1,0 +1,11 @@
+[Unit]
+Description=MinIO Object Storage
+After=network-online.target
+[Service]
+User=minio
+Group=minio
+EnvironmentFile=/etc/default/minio
+ExecStart=/usr/local/bin/minio server /var/lib/minio --address :9000 --console-address :9001
+Restart=always
+[Install]
+WantedBy=multi-user.target
