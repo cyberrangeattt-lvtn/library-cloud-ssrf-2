@@ -26,6 +26,9 @@
       user_access_sudo: true
     - role: attacker
     - role: chrony
+      chrony_timezone: Asia/Ho_Chi_Minh
+      become: yes
+
 
 - name: Configure vulnerable ImageResizer and mock IMDS
   hosts: webapp-vm
